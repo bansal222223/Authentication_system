@@ -129,7 +129,8 @@ class LoginView(APIView):
                 httponly=True,
                 secure=True,
                 samesite="None",
-                max_age=1800
+                max_age=1800,
+                path="/"
             )
 
             # Refresh Token Cookie
@@ -139,7 +140,8 @@ class LoginView(APIView):
                 httponly=True,
                 secure=True,
                 samesite="None",
-                max_age=86400
+                max_age=86400,
+                path="/"
             )
 
             return response
