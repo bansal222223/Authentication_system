@@ -128,7 +128,8 @@ class LoginView(APIView):
                 value=str(access),
                 httponly=True,
                 secure=True,
-                samesite="None"
+                samesite="None",
+                max_age=1800
             )
 
             # Refresh Token Cookie
@@ -137,7 +138,8 @@ class LoginView(APIView):
                 value=str(refresh),
                 httponly=True,
                 secure=True,
-                samesite="None"
+                samesite="None",
+                max_age=86400
             )
 
             return response
@@ -174,7 +176,8 @@ class RefreshTokenView(APIView):
                 value=str(access),
                 httponly=True,
                 secure=True,
-                samesite="None"
+                samesite="None",
+                max_age=1800
             )
 
             return response
@@ -201,4 +204,4 @@ class LogoutView(APIView):
         response.delete_cookie("access_token")
         response.delete_cookie("refresh_token")
 
-        return response 
+        return response
