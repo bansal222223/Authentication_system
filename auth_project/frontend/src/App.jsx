@@ -321,6 +321,7 @@ function RegisterForm({ onSuccess, onSwitch }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
+  const [otpType, setOtpType] = useState("numeric")
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [loading, setLoading] = useState(false);
 
