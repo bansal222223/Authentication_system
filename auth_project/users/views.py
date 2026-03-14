@@ -20,7 +20,7 @@ class RegisterView(APIView):
             serializer.save()
 
             return Response(
-                {'message': 'OTP aapke email pe bhej diya!'},
+                {"message": "OTP aapke email pe bhej diya!"},
                 status=status.HTTP_201_CREATED
             )
 
@@ -38,28 +38,25 @@ class VerifyOTPView(APIView):
 
         if serializer.is_valid():
 
-            email = serializer.validated_data['email']
-            otp = serializer.validated_data['otp']
+            email = serializer.validated_data["email"]
+            otp = serializer.validated_data["otp"]
 
             try:
                 user = CustomUser.objects.get(email=email)
                 otp_obj = OTPVerification.objects.get(user=user)
 
-                # OTP expired check
                 if otp_obj.is_expired():
                     return Response(
-                        {'error': 'OTP expire ho gaya!'},
+                        {"error": "OTP expire ho gaya!"},
                         status=status.HTTP_400_BAD_REQUEST
                     )
 
-                # OTP match check
                 if otp_obj.otp != otp:
                     return Response(
-                        {'error': 'Galat OTP!'},
+                        {"error": "Galat OTP!"},
                         status=status.HTTP_400_BAD_REQUEST
                     )
 
-                # user verify
                 user.is_verified = True
                 user.is_active = True
                 user.save()
@@ -67,19 +64,19 @@ class VerifyOTPView(APIView):
                 otp_obj.delete()
 
                 return Response(
-                    {'message': 'Email verify ho gayi!'},
+                    {"message": "Email verify ho gayi!"},
                     status=status.HTTP_200_OK
                 )
 
             except CustomUser.DoesNotExist:
                 return Response(
-                    {'error': 'User nahi mila'},
+                    {"error": "User nahi mila"},
                     status=status.HTTP_404_NOT_FOUND
                 )
 
             except OTPVerification.DoesNotExist:
                 return Response(
-                    {'error': 'OTP record nahi mila'},
+                    {"error": "OTP record nahi mila"},
                     status=status.HTTP_404_NOT_FOUND
                 )
 
@@ -97,20 +94,20 @@ class LoginView(APIView):
 
         if serializer.is_valid():
 
-            email = serializer.validated_data['email']
-            password = serializer.validated_data['password']
+            email = serializer.validated_data["email"]
+            password = serializer.validated_data["password"]
 
             user = authenticate(request, email=email, password=password)
 
             if not user:
                 return Response(
-                    {'error': 'Credentials galat hain'},
+                    {"error": "Credentials galat hain"},
                     status=status.HTTP_401_UNAUTHORIZED
                 )
 
             if not user.is_verified:
                 return Response(
-                    {'error': 'Pehle email verify karo!'},
+                    {"error": "Pehle email verify karo!"},
                     status=status.HTTP_403_FORBIDDEN
                 )
 
@@ -130,7 +127,8 @@ class LoginView(APIView):
                 key="access_token",
                 value=str(access),
                 httponly=True,
-                samesite="Lax"
+                secure=True,
+                samesite="None"
             )
 
             # Refresh Token Cookie
@@ -138,7 +136,8 @@ class LoginView(APIView):
                 key="refresh_token",
                 value=str(refresh),
                 httponly=True,
-                samesite="Lax"
+                secure=True,
+                samesite="None"
             )
 
             return response
@@ -161,22 +160,30 @@ class RefreshTokenView(APIView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-        refresh = RefreshToken(refresh_token)
-        access = refresh.access_token
+        try:
+            refresh = RefreshToken(refresh_token)
+            access = refresh.access_token
 
-        response = Response(
-            {"message": "Token refresh ho gaya"},
-            status=status.HTTP_200_OK
-        )
+            response = Response(
+                {"message": "Token refresh ho gaya"},
+                status=status.HTTP_200_OK
+            )
 
-        response.set_cookie(
-            key="access_token",
-            value=str(access),
-            httponly=True,
-            samesite="Lax"
-        )
+            response.set_cookie(
+                key="access_token",
+                value=str(access),
+                httponly=True,
+                secure=True,
+                samesite="None"
+            )
 
-        return response
+            return response
+
+        except Exception:
+            return Response(
+                {"error": "Invalid refresh token"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
 
 # =========================
@@ -194,4 +201,4 @@ class LogoutView(APIView):
         response.delete_cookie("access_token")
         response.delete_cookie("refresh_token")
 
-        return response
+        return response 

@@ -472,13 +472,13 @@ function LoginForm({ prefillEmail, onSuccess, onSwitch }) {
     try {
       const res = await fetch(`${API}/login/`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (res.ok) {
-        localStorage.setItem("access", data.access);
-        localStorage.setItem("refresh", data.refresh);
+        
         onSuccess(data);
       } else {
         setAlert({ type: "error", message: data.error || "Login failed. Check credentials." });
@@ -503,7 +503,7 @@ function LoginForm({ prefillEmail, onSuccess, onSwitch }) {
         <input type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
       </div>
       <button className="btn" onClick={handleSubmit} disabled={loading}>
-        {loading ? "Authenticating..." : "Login & Get Token →"}
+        {loading ? "Authenticating..." : "Login"}
       </button>
       <div className="divider">OR</div>
       <div style={{ textAlign: "center", fontSize: 14, color: "var(--muted)" }}>
@@ -516,16 +516,7 @@ function LoginForm({ prefillEmail, onSuccess, onSwitch }) {
 function SuccessScreen({ data, onLogout }) {
   const roleEmoji = { client: "👤", reseller: "🏪", superadmin: "👑" };
 
-  const copyToken = (text, id) => {
-    navigator.clipboard.writeText(text);
-    const btn = document.getElementById(id);
-    const oldText = btn.textContent;
-    btn.textContent = "Copied!";
-    btn.style.background = "var(--success)";
-    btn.style.color = "var(--bg)";
-    setTimeout(() => { btn.textContent = oldText; btn.style = ""; }, 2000);
-  };
-
+  
   return (
     <div style={{ textAlign: "center", animation: "fadeUp 0.3s ease" }}>
       <div className="success-icon">✓</div>
@@ -534,16 +525,7 @@ function SuccessScreen({ data, onLogout }) {
       <div className="role-badge">
         {roleEmoji[data.role] || "👤"} <span>{data.role}</span>
       </div>
-      <div className="token-box">
-        <div className="token-label">Access Token</div>
-        <div className="token-value">{data.access}</div>
-        <button id="copy-access" className="copy-btn" onClick={() => copyToken(data.access, "copy-access")}>Copy</button>
-      </div>
-      <div className="token-box">
-        <div className="token-label">Refresh Token</div>
-        <div className="token-value">{data.refresh}</div>
-        <button id="copy-refresh" className="copy-btn" onClick={() => copyToken(data.refresh, "copy-refresh")}>Copy</button>
-      </div>
+      
       <button className="btn" style={{ marginTop: 20 }} onClick={onLogout}>Logout Session</button>
     </div>
   );
@@ -557,12 +539,17 @@ export default function App() {
   const tabs = ["register", "verify", "login"];
   const tabLabels = { register: "Register", verify: "Verify", login: "Login" };
 
-  const handleLogout = () => {
-    localStorage.removeItem("access");
-    localStorage.removeItem("refresh");
-    setLoginData(null);
-    setActiveTab("login");
-  };
+  const handleLogout = async () => {
+
+  await fetch(`${API}/logout/`, {
+    method: "POST",
+    credentials: "include"
+  });
+
+  setLoginData(null);
+  setActiveTab("login");
+};
+  
 
   return (
     <div className="page">
